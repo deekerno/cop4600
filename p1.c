@@ -16,7 +16,7 @@ int front = -1;
 int rear = -1;
 
 void roundRobin(int procCount, int runFor, int quantum);
-void fcfs();
+void fcfs(int procCount, int runFor);
 void sjf();
 void push(process x);
 void pop();
@@ -195,9 +195,43 @@ void roundRobin(int procCount, int runFor, int quantum)
     }
 }
 
-void fcfs()
+void fcfs(int procCount, int runFor)
 {
-
+	int time = 0, timePrevProcEnded = 0, index1 = 0, index2 = 0;
+	int burstCurProc;
+	int procToServe = procCount;
+	char nameCurProc[20];
+	
+	push(proc[index1]);	
+	burstCurProc = queue[front].burst;
+	strcpy(nameCurProc, proc[index1].name);
+	printf("Time %d: %s arrived\n", time, queue[front].name, queue[front].burst);
+	printf("Time %d: %s selected (burst %d)\n", time, queue[front].name, queue[front].burst);
+	pop(proc[index1]);	
+	index1 = index1 + 1;
+	
+	while (time < runFor)
+	{
+		// Do the following:
+		while (proc[index1].arrival < burstCurProc && index1 < procCount)
+		{
+			push(proc[index1]);
+			time = time + queue[index1 - 1].arrival;
+			printf("Time %d: %s arrived\n", time, queue[index1 - 1].name, queue[index1 - 1].burst);
+			index1 = index1 + 1;
+		}
+		time = timePrevProcEnded + burstCurProc;
+		timePrevProcEnded = time;
+		printf("Time %d: %s finished\n", time, nameCurProc);
+		procToServe = procToServe - 1;
+		if (procToServe == 0)
+			break;
+		burstCurProc = queue[front].burst;
+		strcpy(nameCurProc, queue[front].name);
+		printf("Time %d: %s selected (burst %d)\n", time, queue[front].name, queue[front].burst);
+		pop(proc[0]);
+	}
+    printf("Finished at time %d\n", runFor);
 }
 
 void sjf()
