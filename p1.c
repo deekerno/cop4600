@@ -99,7 +99,7 @@ int main()
     }
     else if(strcmp(use, "fcfs") == 0)
     {
-        fcfs();
+        fcfs(procCount, runFor);
     }
     else if(strcmp(use, "sjf") == 0)
     {
