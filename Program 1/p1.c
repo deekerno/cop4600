@@ -137,15 +137,11 @@ void roundRobin(int procCount, int runFor, int quantum)
 
     //add processes to a queue
     for(i=0; i<procCount; i++)
-    {
         push(proc[i]);
-    }
 
     //make a copy
     for(i=0; i<procCount; i++)
-    {
         turnTime[i] = proc[i];
-    }
 
     /* //check queue
     printf("the queue: \n");
@@ -155,7 +151,6 @@ void roundRobin(int procCount, int runFor, int quantum)
 
 
     int count = 0;
-    int zeroBurst = 0;
     int tStatus = 0;  //timeStatus
     char status[15][10];
     process temp2;
@@ -163,16 +158,9 @@ void roundRobin(int procCount, int runFor, int quantum)
     while(curTime != runFor)
     {
         if(curTime == queue[front].arrival)
-        {
             printf("Time %d: %s arrived \n", curTime, queue[front].name);
-            for(j=0; j<MAXPROCS; j++)
-            {
-                if(strcmp(queue[front].name, turnTime[j].name) == 0)
-                    turnTime[j].arrival = curTime;
-            }
-        }
 
-        //keep running process if others have not arrived
+        //keep running current process if others have not arrived
         if(curTime < queue[front+1].arrival)
         {
             printf("Time %d: %s selected (burst %d)\n", curTime, queue[front].name, queue[front].burst);
@@ -181,21 +169,15 @@ void roundRobin(int procCount, int runFor, int quantum)
             for(i=0; i<quantum; i++)
             {
                 //array storage
+
                 curTime++;
+                queue[front].burst -= 1;
 
                 if(curTime == queue[front+1].arrival)
-                {
                     printf("Time %d: %s arrived \n", curTime, queue[front+1].name);
-                    for(j=0; j<MAXPROCS; j++)
-                    {
-                        if(strcmp(queue[front+1].name, turnTime[j].name) == 0)
-                            turnTime[j].arrival = curTime;
-                    }
-                }
-                queue[front].burst -= 1;
             }
 
-            if(curTime > queue[front+1].arrival)
+            if(curTime >= queue[front+1].arrival) //>= or >
             {
                 temp2 = queue[front];
                 pop();
@@ -203,27 +185,15 @@ void roundRobin(int procCount, int runFor, int quantum)
             }
         }
 
+        //other processes have arrived
         if(curTime >= queue[front+1].arrival && front!=-1)
         {
-            //done with process in front for now
-            //temp2 = queue[front];
-			//pop();
-			//push(temp2);
-			//printf("Time %d: %s selected (burst %d)\n", curTime, queue[front].name, queue[front].burst);
-
             //a full quantum can run
             if(queue[front].burst >= quantum)
             {
                 //temporary perhaps
-                if(curTime == queue[front+1].arrival)
-                {
-                    printf("Time %d: %s arrived \n", curTime, queue[front+1].name);
-                    for(j=0; j<MAXPROCS; j++)
-                    {
-                        if(strcmp(queue[front+1].name, turnTime[j].name) == 0)
-                            turnTime[j].arrival = curTime;
-                    }
-                }
+                //if(curTime == queue[front+1].arrival)
+                //    printf("Time %d: %s arrived \n", curTime, queue[front+1].name);
 
                 printf("Time %d: %s selected (burst %d)\n", curTime, queue[front].name, queue[front].burst);
 
@@ -233,6 +203,7 @@ void roundRobin(int procCount, int runFor, int quantum)
                     queue[front].burst -= 1;
                 }
 
+                //when the burst left was exactly the quantum
                 if(queue[front].burst == 0)
                 {
                     printf("Time %d: %s finished \n", curTime, queue[front].name);
@@ -275,13 +246,14 @@ void roundRobin(int procCount, int runFor, int quantum)
             }
         }
 
-        //queue is empty
-        if(front == -1)
+        //queue is empty and there's still time left to run
+        if(front==-1 && runFor-curTime!=0)
         {
             printf("Time %d: Idle \n", curTime);
             curTime++;
         }
 
+        //queue is empty and all processes are done
         if(front==-1 && runFor-curTime==0)
         {
             printf("Finished at time %d \n", curTime);
@@ -289,15 +261,12 @@ void roundRobin(int procCount, int runFor, int quantum)
 
         //when the processes don't finish
         if(curTime > runFor)
-        {
             break;
-        }
-
-    } //end of while
+    }
 
 
     //print if any processes didn't finish in time.
-    //queue isn't empty, runFor is up, and processes still have burst
+    //queue isn't empty, runFor time is up, and processes still have burst
     //used to be if(front==-1 && runFor-curTime==0)
     if(front != -1)
     {
@@ -314,10 +283,7 @@ void roundRobin(int procCount, int runFor, int quantum)
             if(queue[index].burst != 0)
                 printf("Process %s did not finish in time. \n", queue[index].name);
         }
-        printf("\n");;
-
-        //printf("\n");
-        //printf("Processes did not finish in time. \n");
+        printf("\n");
     }
 
     /*printf("turn: \n");
@@ -331,7 +297,6 @@ void roundRobin(int procCount, int runFor, int quantum)
     {
         printf("%s wait  turnaround %d \n", turnTime[i].name, (turnTime[i].finish)-(turnTime[i].arrival));
     }
-
 }
 
 void fcfs(int procCount, int runFor)
