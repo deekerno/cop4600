@@ -55,7 +55,6 @@ int main()
     return 0;
 }
 
-
 void Push(int x)
 {
     //check if queue is full
@@ -108,21 +107,6 @@ void Print()
 {
     int count;
     int index;
-
-    /*
-    //find number of elements in queue
-    count = (rear+MAXSIZE-front) % MAXSIZE + 1;
-
-    printf("Queue is: ");
-
-    int i;
-    for(i = 0; i < count; i++)
-    {
-        index = (front + i) % MAXSIZE;
-        printf("%d ", A[index]);
-    }
-    printf("\n");
-    */
 
     if(front == -1 && rear == -1)
     {
