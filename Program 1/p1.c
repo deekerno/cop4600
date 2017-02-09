@@ -300,7 +300,7 @@ void roundRobin(int procCount, int runFor, int quantum)
     }
 }
 
-// Implements First Come First Serve Scheduling Algorithm
+// Implements First Come First Serve Scheduling Algorithm. Somewhat of a pain.
 void fcfs(int procCount, int runFor)
 {
     int time = 0, timePrevProcEnded = 0, index1 = 0, index2 = 0;
