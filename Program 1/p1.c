@@ -147,10 +147,10 @@ void roundRobin(int procCount, int runFor, int quantum)
     for(i=0; i<procCount; i++)
         push(proc[i]);
 
-    //check queue
+    /* //check queue
     for(i=0; i<procCount; i++)
         fprintf(ofp, "%s %d %d \n", queue[i].name, queue[i].arrival, queue[i].burst);
-    fprintf(ofp, "\n");
+    fprintf(ofp, "\n"); */
 
     //make a copy
     for(i=0; i<procCount; i++)
@@ -436,6 +436,7 @@ void sjf(int procCount, int runFor)
     int arrived[procCount+1];
     int burst[procCount+1];
     int selected[procCount+1];
+    int maxBurst[procCount+1];
 
     int i = 0;
     int small2;
@@ -453,12 +454,13 @@ void sjf(int procCount, int runFor)
     {
         arrival[i] = proc[i].arrival;
         burst[i] = proc[i].burst;
+        maxBurst[i] = proc[i].burst;
     }
 
     while (curTime < runFor)
     {
-        if (did_some == 0)
-            fprintf(ofp, "Time %d: IDLE\n", curTime+1);
+        //if (did_some == 0)
+            //fprintf(ofp, "Time %d: IDLE\n", curTime+1);
 
         small = procCount;
         for (i = 0; i < procCount; i++)
@@ -472,12 +474,13 @@ void sjf(int procCount, int runFor)
                 did_some = 1;
             }
 
-
             if (arrival[i] <= curTime && burst[i] < burst[small] && burst[i] > 0)
             {
                 small = i;
                 did_some = 1;
-                //fprintf(ofp, "Time %d: %s selected (burst %d)\n", curTime, proc[i].name, burst[i]);
+
+                if(maxBurst[i] == burst[i])
+                    fprintf(ofp, "Time %d: %s selected (burst %d)\n", curTime, proc[i].name, burst[i]);
             }
         }
 
@@ -511,7 +514,6 @@ void sjf(int procCount, int runFor)
         turnaround = turnTime[i].finish - turnTime[i].arrival + 1;
         fprintf(ofp, "%s wait %d turnaround %d\n", proc[i].name, wait, turnaround);
     }
-
 }
 
 void push(process x)

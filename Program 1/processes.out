@@ -1,0 +1,56 @@
+4 processes
+Using Shortest Job First (Pre)
+
+Time 0: P1 arrived
+Time 0: P1 selected (burst 8)
+Time 1: P1 selected (burst 7)
+Time 1: P2 arrived
+Time 1: P2 selected (burst 4)
+Time 2: P1 selected (burst 7)
+Time 2: P2 selected (burst 3)
+Time 2: P3 arrived
+Time 3: P1 selected (burst 7)
+Time 3: P2 selected (burst 2)
+Time 3: P4 arrived
+Time 4: P1 selected (burst 7)
+Time 4: P2 selected (burst 1)
+Time 5: P2 finished
+Time 5: P1 selected (burst 7)
+Time 5: P4 selected (burst 5)
+Time 6: P1 selected (burst 7)
+Time 6: P4 selected (burst 4)
+Time 7: P1 selected (burst 7)
+Time 7: P4 selected (burst 3)
+Time 8: P1 selected (burst 7)
+Time 8: P4 selected (burst 2)
+Time 9: P1 selected (burst 7)
+Time 9: P4 selected (burst 1)
+Time 10: P4 finished
+Time 10: P1 selected (burst 7)
+Time 11: P1 selected (burst 6)
+Time 12: P1 selected (burst 5)
+Time 13: P1 selected (burst 4)
+Time 14: P1 selected (burst 3)
+Time 15: P1 selected (burst 2)
+Time 16: P1 selected (burst 1)
+Time 17: P1 finished
+Time 17: P3 selected (burst 9)
+Time 18: P3 selected (burst 8)
+Time 19: P3 selected (burst 7)
+Time 20: P3 selected (burst 6)
+Time 21: P3 selected (burst 5)
+Time 22: P3 selected (burst 4)
+Time 23: P3 selected (burst 3)
+Time 24: P3 selected (burst 2)
+Time 25: P3 selected (burst 1)
+Time 26: P3 finished
+Time 26: IDLE
+Time 27: IDLE
+Time 28: IDLE
+Time 29: IDLE
+Finished at time 30
+
+P1 wait 9 turnaround 17
+P2 wait 0 turnaround 4
+P3 wait 15 turnaround 24
+P4 wait 2 turnaround 7
