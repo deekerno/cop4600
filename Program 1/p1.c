@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MAXPROCS 50
+#define MAXPROCS 100
 
 typedef struct
 {
@@ -31,6 +31,7 @@ int main()
 {
     int procCount;
     int runFor = 0;
+    int helper;
     char use[5];
     int quantum;
     char ignore[1000];
@@ -42,6 +43,7 @@ int main()
     ofp = fopen("processes.out", "w");
 
     fscanf(ifp, "%s %d", str1, &procCount);
+    helper = procCount;
     while(fgetc(ifp) != '\n')  //ignore rest of the line
         continue;
 
@@ -61,10 +63,17 @@ int main()
     }
     else if(strcmp(use, "fcfs") == 0 || strcmp(use, "sjf") == 0)
     {
-        //skip the entire next line
-        while(fgetc(ifp) != '\n')
-            continue;
+        if(fgetc(ifp) == 'p')
+            ;
+        else
+        {
+            //skip the entire next line
+            while(fgetc(ifp) != '\n')
+                continue;
+        }
     }
+
+    procCount = helper;
 
     //store info for each process
     int i;
@@ -74,26 +83,21 @@ int main()
                &proc[i].arrival, ignore, &proc[i].burst);
     }
 
-    /*//check struct
-    for(i=0; i<procCount; i++)
-        fprintf(ofp, "%s %d %d \n", proc[i].name, proc[i].arrival, proc[i].burst);
-    fprintf(ofp, "\n"); */
-
     //top of the output file
     fprintf(ofp, "%d processes\n", procCount);
 
     if(strcmp(use, "rr") == 0)
     {
-        fprintf(ofp, "Using Round-Robin \n");
+        fprintf(ofp, "Using Round-Robin\n");
         fprintf(ofp, "Quantum %d\n", quantum);
     }
     else if(strcmp(use, "fcfs") == 0)
     {
-        fprintf(ofp, "Using First-Come First Served \n");
+        fprintf(ofp, "Using First Come First Served\n");
     }
     else if(strcmp(use, "sjf") == 0)
     {
-        fprintf(ofp, "Using Shortest Job First \n");
+        fprintf(ofp, "Using Shortest Job First (Pre)\n");
     }
     fprintf(ofp, "\n");
 
@@ -111,6 +115,9 @@ int main()
     {
         sjf(procCount, runFor);
     }
+
+    fclose(ifp);
+    fclose(ofp);
 
     return 0;
 }
@@ -167,6 +174,8 @@ void roundRobin(int procCount, int runFor, int quantum)
         {
             if(curTime == queue[front].arrival)
                 fprintf(ofp, "Time %d: %s arrived \n", curTime, queue[front].name);
+            else if(curTime == queue[front+1].arrival)
+                fprintf(ofp, "Time %d: %s arrived \n", curTime, queue[front+1].name);
 
             //a full quantum can run
             if(queue[front].burst >= quantum)
@@ -286,7 +295,6 @@ void roundRobin(int procCount, int runFor, int quantum)
     }
 }
 
-// Implements First Come First Serve Scheduling Algorithm.
 void fcfs(int procCount, int runFor)
 {
     int i,j,k;
@@ -334,7 +342,6 @@ void fcfs(int procCount, int runFor)
         {
             if(curTime == queue[front].arrival)
                 fprintf(ofp, "Time %d: %s arrived \n", curTime, queue[front].name);
-
             else if(curTime == queue[front+1].arrival)
                 fprintf(ofp, "Time %d: %s arrived \n", curTime, queue[front+1].name);
 
@@ -490,10 +497,8 @@ void sjf(int procCount, int runFor)
             turnTime[small].finish = curTime;
         }
 
-
         if (finishedProcs == procCount && curTime+1 < runFor)
             fprintf(ofp, "Time %d: IDLE\n", curTime+1);
-
 
         curTime++;
     }
