@@ -6,9 +6,11 @@
 typedef struct
 {
     char name[20];
+    int num;
     int arrival;
     int burst;
     int finish;
+    int remain;
 } process;
 
 process turnTime[MAXPROCS];
@@ -19,7 +21,7 @@ int rear = -1;
 
 void roundRobin(int procCount, int runFor, int quantum);
 void fcfs(int procCount, int runFor);
-void sjf();
+void sjf(int procCount, int runFor);
 void push(process x);
 void pop();
 
@@ -35,7 +37,7 @@ int main()
     char str1[12], str2[6], str3[3], str4[7];
 
     FILE *ifp;
-    ifp = fopen("processes3.in", "r");
+    ifp = fopen("processes5.in", "r");
 
     fscanf(ifp, "%s %d", str1, &procCount);
     while(fgetc(ifp) != '\n')  //ignore rest of the line
@@ -324,37 +326,79 @@ void fcfs(int procCount, int runFor)
 
 void sjf(int procCount, int runFor)
 {
-    int index;
-    int curTime = 0;    // time counter
-    int swapped = 0;    // easy swap tell
-    process temp;       // temp process for sorting
-    process other;      // temp process for context swtiching
+    int wait, turnaround;
+    int arrival[procCount+1];
+    int arrived[procCount+1];
+    int burst[procCount+1];
+    int selected[procCount+1];
+    
+    int i = 0;
+    int curTime = 0;
+    int small = procCount;
+    int finishedProcs = 0;
 
-    // Bubble sort by arrival.
+    burst[small] = 1000;
+
+    for(i=0; i<procCount; i++)
+        turnTime[i] = proc[i];
+
     for (int i = 0; i < procCount; i++)
     {
-        swapped = 0;
-        for (int j = 0; j < procCount; j++)
-        {
-            if (proc[j].arrival > proc[j+1].arrival)
-            {
-                temp = proc[j];
-                proc[j] = proc[j+1];
-                proc[j+1] = temp;
-                swapped = 1;
-            }
-        }
-
-        if (swapped == 0)
-            break;
+        arrival[i] = proc[i].arrival;
+        burst[i] = proc[i].burst;
     }
 
     while (curTime < runFor)
     {
 
+        small = procCount;
+        for (i = 0; i < procCount; i++)
+        {
+            //if (i == 0 && arrival[i] == curTime)
+            //    printf("Time %d: %s arrived\n", curTime, proc[i+1].name);
+
+            if (arrival[i] == curTime)
+                printf("Time %d: %s arrived\n", curTime, proc[i].name);
+
+            if (arrival[i] <= curTime && burst[i] < burst[small] && burst[i] > 0)
+            {
+                small = i;
+                //printf("Time %d: %s selected (burst %d)\n", curTime, proc[i].name, burst[i]);
+            }
+        }
+        
+        if (selected[i] == 1)
+        {
+            printf("Time %d: %s selected (burst %d)\n", curTime, proc[i].name, burst[i]);
+            selected[i] = 0;
+        }
+
+        burst[small]--;
+
+        if (burst[small] == 0)
+        {
+            printf("Time %d: %s finished\n", curTime + 1, proc[small].name);
+            burst[small] = 1000;
+            finishedProcs++;
+            turnTime[small].finish = curTime;
+        }
+
+        if (finishedProcs == procCount && curTime+1 < runFor)
+            printf("Time %d: IDLE\n", curTime+1);
+
+
+        curTime++;
     }
 
-    printf("Finished at time %d\n", runFor);
+    printf("Finished at time %d\n\n", runFor);
+
+    for (i = 0; i < procCount; i++)
+    {
+        wait = turnTime[i].finish - turnTime[i].arrival - turnTime[i].burst + 1;
+        turnaround = turnTime[i].finish - turnTime[i].arrival + 1;
+        printf("%s wait %d turnaround %d\n", proc[i].name, wait, turnaround);
+    }
+
 }
 
 void push(process x)
