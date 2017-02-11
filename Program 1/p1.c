@@ -35,7 +35,7 @@ int main()
     char str1[12], str2[6], str3[3], str4[7];
 
     FILE *ifp;
-    ifp = fopen("processes5.in", "r");
+    ifp = fopen("processes3.in", "r");
 
     fscanf(ifp, "%s %d", str1, &procCount);
     while(fgetc(ifp) != '\n')  //ignore rest of the line
@@ -105,7 +105,7 @@ int main()
     }
     else if(strcmp(use, "sjf") == 0)
     {
-        sjf();
+        sjf(procCount, runFor);
     }
 
     return 0;
@@ -322,9 +322,39 @@ void fcfs(int procCount, int runFor)
     printf("Finished at time %d\n", runFor);
 }
 
-void sjf()
+void sjf(int procCount, int runFor)
 {
+    int index;
+    int curTime = 0;    // time counter
+    int swapped = 0;    // easy swap tell
+    process temp;       // temp process for sorting
+    process other;      // temp process for context swtiching
 
+    // Bubble sort by arrival.
+    for (int i = 0; i < procCount; i++)
+    {
+        swapped = 0;
+        for (int j = 0; j < procCount; j++)
+        {
+            if (proc[j].arrival > proc[j+1].arrival)
+            {
+                temp = proc[j];
+                proc[j] = proc[j+1];
+                proc[j+1] = temp;
+                swapped = 1;
+            }
+        }
+
+        if (swapped == 0)
+            break;
+    }
+
+    while (curTime < runFor)
+    {
+
+    }
+
+    printf("Finished at time %d\n", runFor);
 }
 
 void push(process x)
