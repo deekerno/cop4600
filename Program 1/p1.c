@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MAXPROCS 50
+#define MAXPROCS 100
 
 typedef struct
 {
@@ -23,10 +23,13 @@ void sjf();
 void push(process x);
 void pop();
 
+FILE *ifp, *ofp;
+
 int main()
 {
     int procCount;
     int runFor = 0;
+    int helper;
     char use[5];
     int quantum;
     char ignore[1000];
@@ -34,10 +37,11 @@ int main()
     //For the words "processcount", "runfor", "use", "quantum" in input file
     char str1[12], str2[6], str3[3], str4[7];
 
-    FILE *ifp;
-    ifp = fopen("processes3.in", "r");
+    ifp = fopen("processes.in", "r");
+    ofp = fopen("processes.out", "w");
 
     fscanf(ifp, "%s %d", str1, &procCount);
+    helper = procCount;
     while(fgetc(ifp) != '\n')  //ignore rest of the line
         continue;
 
@@ -57,10 +61,17 @@ int main()
     }
     else if(strcmp(use, "fcfs") == 0 || strcmp(use, "sjf") == 0)
     {
-        //skip the entire next line
-        while(fgetc(ifp) != '\n')
-            continue;
+        if(fgetc(ifp) == 'p')
+            ;
+        else
+        {
+            //skip the entire next line
+            while(fgetc(ifp) != '\n')
+                continue;
+        }
     }
+
+    procCount = helper;
 
     //store info for each process
     int i;
@@ -70,28 +81,23 @@ int main()
                &proc[i].arrival, ignore, &proc[i].burst);
     }
 
-    /*//check struct
-    for(i=0; i<procCount; i++)
-        printf("%s %d %d \n", proc[i].name, proc[i].arrival, proc[i].burst);
-    printf("\n"); */
-
     //top of the output file
-    printf("%d processes\n", procCount);
+    fprintf(ofp, "%d processes\n", procCount);
 
     if(strcmp(use, "rr") == 0)
     {
-        printf("Using Round-Robin \n");
-        printf("Quantum %d\n", quantum);
+        fprintf(ofp, "Using Round-Robin \n");
+        fprintf(ofp,"Quantum %d\n", quantum);
     }
     else if(strcmp(use, "fcfs") == 0)
     {
-        printf("Using First-Come First Served \n");
+        fprintf(ofp, "Using First-Come First Served \n");
     }
     else if(strcmp(use, "sjf") == 0)
     {
-        printf("Using Shortest Job First \n");
+        fprintf(ofp, "Using Shortest Job First \n");
     }
-    printf("\n");
+    fprintf(ofp, "\n");
 
 
     //function calls
@@ -105,8 +111,11 @@ int main()
     }
     else if(strcmp(use, "sjf") == 0)
     {
-        sjf(procCount, runFor);
+        sjf();
     }
+
+    fclose(ifp);
+    fclose(ofp);
 
     return 0;
 }
@@ -136,10 +145,10 @@ void roundRobin(int procCount, int runFor, int quantum)
     for(i=0; i<procCount; i++)
         push(proc[i]);
 
-    //check queue
+    /* //check queue
     for(i=0; i<procCount; i++)
         printf("%s %d %d \n", queue[i].name, queue[i].arrival, queue[i].burst);
-    printf("\n");
+    printf("\n"); */
 
     //make a copy
     for(i=0; i<procCount; i++)
@@ -153,7 +162,7 @@ void roundRobin(int procCount, int runFor, int quantum)
         if(curTime <queue[front].arrival && front!=-1)
         {
             while(curTime < queue[front].arrival) {
-                printf("Time %d: Idle \n", curTime);
+                fprintf(ofp, "Time %d: Idle \n", curTime);
                 curTime++;
             }
         }
@@ -162,12 +171,15 @@ void roundRobin(int procCount, int runFor, int quantum)
         if(curTime >=queue[front].arrival && front!=-1)
         {
             if(curTime == queue[front].arrival)
-                printf("Time %d: %s arrived \n", curTime, queue[front].name);
+                fprintf(ofp, "Time %d: %s arrived \n", curTime, queue[front].name);
+
+            else if(curTime == queue[front+1].arrival)
+                fprintf(ofp, "Time %d: %s arrived \n", curTime, queue[front+1].name);
 
             //a full quantum can run
             if(queue[front].burst >= quantum)
             {
-                printf("Time %d: %s selected (burst %d)\n", curTime, queue[front].name, queue[front].burst);
+                fprintf(ofp, "Time %d: %s selected (burst %d)\n", curTime, queue[front].name, queue[front].burst);
 
                 for(i=0; i<quantum; i++)  //leave alone
                 {
@@ -175,7 +187,7 @@ void roundRobin(int procCount, int runFor, int quantum)
                     queue[front].burst -= 1;
 
                     if(curTime == queue[front+1].arrival)
-                        printf("Time %d: %s arrived \n", curTime, queue[front+1].name);
+                        fprintf(ofp, "Time %d: %s arrived \n", curTime, queue[front+1].name);
                 }
 
                 //time is up
@@ -184,7 +196,7 @@ void roundRobin(int procCount, int runFor, int quantum)
 
                 if(queue[front].burst == 0)
                 {
-                    printf("Time %d: %s finished \n", curTime, queue[front].name);
+                    fprintf(ofp, "Time %d: %s finished \n", curTime, queue[front].name);
                     for(k=0; k<MAXPROCS; k++)
                     {
                         if(strcmp(queue[front].name, turnTime[k].name) == 0)
@@ -210,7 +222,7 @@ void roundRobin(int procCount, int runFor, int quantum)
                 if(queue[front].burst == 0)
                     ;
                 else
-                    printf("Time %d: %s selected (burst %d)\n", curTime, queue[front].name, queue[front].burst);
+                    fprintf(ofp, "Time %d: %s selected (burst %d)\n", curTime, queue[front].name, queue[front].burst);
 
                 for(j=0; j<num; j++)
                 {
@@ -222,10 +234,7 @@ void roundRobin(int procCount, int runFor, int quantum)
                 if(curTime > runFor)
                     break;
 
-                //if(flag == 0)
-                //    ;
-                //else
-                    printf("Time %d: %s finished \n", curTime, queue[front].name);
+                fprintf(ofp, "Time %d: %s finished \n", curTime, queue[front].name);
                 for(k=0; k<MAXPROCS; k++)
                 {
                     if(strcmp(queue[front].name, turnTime[k].name) == 0)
@@ -238,14 +247,14 @@ void roundRobin(int procCount, int runFor, int quantum)
         //queue is empty and there's still time left to run
         if(front==-1 && runFor-curTime!=0)
         {
-            printf("Time %d: Idle \n", curTime);
+            fprintf(ofp, "Time %d: Idle \n", curTime);
             curTime++;
         }
 
         //queue is empty and all processes are done
         if((front==-1 && runFor-curTime==0))
         {
-            printf("Finished at time %d \n", curTime);
+            fprintf(ofp, "Finished at time %d \n", curTime);
         }
 
         //when the processes don't finish
@@ -261,28 +270,27 @@ void roundRobin(int procCount, int runFor, int quantum)
         int index;
 
         numElements = (rear + MAXPROCS - front) % MAXPROCS + 1;
-        printf("\n");
+        fprintf(ofp, "\n");
 
         for(i=0; i<numElements; i++)
         {
             index = (front + i) % MAXPROCS;
 
             if(queue[index].burst >= 0)  //used to be !=
-                printf("Process %s did not finish in time. \n", queue[index].name);
+                fprintf(ofp, "Process %s did not finish in time. \n", queue[index].name);
         }
     }
 
-    printf("\n");
+    fprintf(ofp, "\n");
     for(i=0; i<procCount; i++)
     {
         if((turnTime[i].finish)-(turnTime[i].arrival) > 0)
-            printf("%s wait %d turnaround %d \n", turnTime[i].name,
+            fprintf(ofp, "%s wait %d turnaround %d \n", turnTime[i].name,
                    (turnTime[i].finish)-(turnTime[i].arrival)-(turnTime[i].burst),
                    (turnTime[i].finish)-(turnTime[i].arrival));
     }
 }
 
-// Implements First Come First Serve Scheduling Algorithm.
 void fcfs(int procCount, int runFor)
 {
     int time = 0, timePrevProcEnded = 0, index1 = 0, index2 = 0;
@@ -322,39 +330,9 @@ void fcfs(int procCount, int runFor)
     printf("Finished at time %d\n", runFor);
 }
 
-void sjf(int procCount, int runFor)
+void sjf()
 {
-    int index;
-    int curTime = 0;    // time counter
-    int swapped = 0;    // easy swap tell
-    process temp;       // temp process for sorting
-    process other;      // temp process for context swtiching
 
-    // Bubble sort by arrival.
-    for (int i = 0; i < procCount; i++)
-    {
-        swapped = 0;
-        for (int j = 0; j < procCount; j++)
-        {
-            if (proc[j].arrival > proc[j+1].arrival)
-            {
-                temp = proc[j];
-                proc[j] = proc[j+1];
-                proc[j+1] = temp;
-                swapped = 1;
-            }
-        }
-
-        if (swapped == 0)
-            break;
-    }
-
-    while (curTime < runFor)
-    {
-
-    }
-
-    printf("Finished at time %d\n", runFor);
 }
 
 void push(process x)
