@@ -289,41 +289,137 @@ void roundRobin(int procCount, int runFor, int quantum)
 // Implements First Come First Serve Scheduling Algorithm.
 void fcfs(int procCount, int runFor)
 {
-    int time = 0, timePrevProcEnded = 0, index1 = 0, index2 = 0;
-    int burstCurProc;
-    int procToServe = procCount;
-    char nameCurProc[20];
+    int i,j,k;
+    int curTime = 0;
+    int burstLeft;
+    process _switch;
+    process temp;
 
-    push(proc[index1]);
-    burstCurProc = queue[front].burst;
-    strcpy(nameCurProc, proc[index1].name);
-    fprintf(ofp, "Time %d: %s arrived\n", time, queue[front].name, queue[front].burst);
-    fprintf(ofp, "Time %d: %s selected (burst %d)\n", time, queue[front].name, queue[front].burst);
-    pop(proc[index1]);
-    index1 = index1 + 1;
-
-    while (time < runFor)
+    //sort processes by arrival time via bubble sort
+    for(i=0; i<procCount-1; i++)
     {
-        // Do the following:
-        while (proc[index1].arrival < burstCurProc && index1 < procCount)
+        for(j=0; j<procCount-i-1; j++)
         {
-            push(proc[index1]);
-            time = time + queue[index1 - 1].arrival;
-            fprintf(ofp, "Time %d: %s arrived\n", time, queue[index1 - 1].name, queue[index1 - 1].burst);
-            index1 = index1 + 1;
+            if(proc[j].arrival > proc[j+1].arrival)
+            {
+                temp = proc[j];
+                proc[j] = proc[j+1];
+                proc[j+1] = temp;
+            }
         }
-        time = timePrevProcEnded + burstCurProc;
-        timePrevProcEnded = time;
-        fprintf(ofp, "Time %d: %s finished\n", time, nameCurProc);
-        procToServe = procToServe - 1;
-        if (procToServe == 0)
-            break;
-        burstCurProc = queue[front].burst;
-        strcpy(nameCurProc, queue[front].name);
-        fprintf(ofp, "Time %d: %s selected (burst %d)\n", time, queue[front].name, queue[front].burst);
-        pop(proc[0]);
     }
-    fprintf(ofp, "Finished at time %d\n", runFor);
+
+    //add processes to a queue
+    for(i=0; i<procCount; i++)
+        push(proc[i]);
+
+    //make a copy
+    for(i=0; i<procCount; i++)
+        turnTime[i] = proc[i];
+
+    //primary loop
+    while(curTime != runFor)
+    {
+        //waiting on process and queue not empty
+        if(curTime <queue[front].arrival && front!=-1)
+        {
+            while(curTime < queue[front].arrival) {
+                fprintf(ofp, "Time %d: Idle \n", curTime);
+                curTime++;
+            }
+        }
+
+        //process has arrived and queue not empty
+        if(curTime >=queue[front].arrival && front!=-1)
+        {
+            if(curTime == queue[front].arrival)
+                fprintf(ofp, "Time %d: %s arrived \n", curTime, queue[front].name);
+
+            else if(curTime == queue[front+1].arrival)
+                fprintf(ofp, "Time %d: %s arrived \n", curTime, queue[front+1].name);
+
+            burstLeft = queue[front].burst;
+
+            fprintf(ofp, "Time %d: %s selected (burst %d)\n", curTime, queue[front].name, queue[front].burst);
+
+            for(i=0; i<burstLeft; i++)  //leave alone
+            {
+                curTime++;
+                queue[front].burst -= 1;
+
+                if(curTime == queue[front+1].arrival)
+                    fprintf(ofp, "Time %d: %s arrived \n", curTime, queue[front+1].name);
+            }
+
+            //time is up
+            if(curTime > runFor)
+                break;
+
+            if(queue[front].burst == 0)
+            {
+                fprintf(ofp, "Time %d: %s finished \n", curTime, queue[front].name);
+                for(k=0; k<MAXPROCS; k++)
+                {
+                    if(strcmp(queue[front].name, turnTime[k].name) == 0)
+                        turnTime[k].finish = curTime;
+                }
+                pop();
+            }
+
+            //switch when...  //&& queue[front].burst <=queue[front+1].burst
+            else if(curTime >=queue[front+1].arrival)
+            {
+                _switch = queue[front];
+                pop();
+                push(_switch);
+            }
+        }
+
+        //queue is empty and there's still time left to run
+        if(front==-1 && runFor-curTime!=0)
+        {
+            fprintf(ofp, "Time %d: Idle \n", curTime);
+            curTime++;
+        }
+
+        //queue is empty and all processes are done
+        if((front==-1 && runFor-curTime==0))
+        {
+            fprintf(ofp, "Finished at time %d \n", curTime);
+        }
+
+        //when the processes don't finish
+        if(curTime > runFor)
+            break;
+    }
+
+    //print if any processes did not finish in time.
+    //time is up and the queue still not empty
+    if(front != -1)
+    {
+        int numElements;
+        int index;
+
+        numElements = (rear + MAXPROCS - front) % MAXPROCS + 1;
+        fprintf(ofp, "\n");
+
+        for(i=0; i<numElements; i++)
+        {
+            index = (front + i) % MAXPROCS;
+
+            if(queue[index].burst >= 0)  //used to be !=
+                fprintf(ofp, "Process %s did not finish in time. \n", queue[index].name);
+        }
+    }
+
+    fprintf(ofp, "\n");
+    for(i=0; i<procCount; i++)
+    {
+        if((turnTime[i].finish)-(turnTime[i].arrival) > 0)
+            fprintf(ofp, "%s wait %d turnaround %d \n", turnTime[i].name,
+                   (turnTime[i].finish)-(turnTime[i].arrival)-(turnTime[i].burst),
+                   (turnTime[i].finish)-(turnTime[i].arrival));
+    }
 }
 
 void sjf(int procCount, int runFor)
@@ -333,7 +429,7 @@ void sjf(int procCount, int runFor)
     int arrived[procCount+1];
     int burst[procCount+1];
     int selected[procCount+1];
-    
+
     int i = 0;
     int small2;
     int curTime = 0;
@@ -346,7 +442,7 @@ void sjf(int procCount, int runFor)
     for(i=0; i<procCount; i++)
         turnTime[i] = proc[i];
 
-    for (int i = 0; i < procCount; i++)
+    for (i = 0; i < procCount; i++)
     {
         arrival[i] = proc[i].arrival;
         burst[i] = proc[i].burst;
@@ -377,7 +473,7 @@ void sjf(int procCount, int runFor)
                 //fprintf(ofp, "Time %d: %s selected (burst %d)\n", curTime, proc[i].name, burst[i]);
             }
         }
-        
+
         //if (small != small2)
         //{
         //    fprintf(ofp, "Time %d: %s selected (burst %d)\n", curTime, proc[small].name, burst[i]);
