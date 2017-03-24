@@ -50,7 +50,7 @@ int devOpen(struct inode *inodePtr, struct file *filePtr)
 {
 	printk(KERN_INFO "Device has been opened \n");
 	
-	return 0; 
+	return 0;
 }
 
 ssize_t devRead(struct file *filePtr, char *buffer, size_t length, loff_t *offset)
