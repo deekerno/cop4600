@@ -6,7 +6,7 @@
 
 #define DEVICENAME "charDevice"
 #define CLASSNAME "char"
-#define MAXSIZE 10
+#define MAXSIZE 1024
 
 MODULE_LICENSE("GPL");
 
@@ -20,6 +20,7 @@ int devRelease(struct inode *inodePtr, struct file *filePtr);
 int majorNumber, i;
 char message[MAXSIZE] = {0};
 int position = 0;
+int numBytesAllowed;
 struct class* charDeviceClass = NULL;
 struct device* charDeviceDevice = NULL;
 
@@ -36,7 +37,7 @@ struct file_operations fOps =
 
 int init_module(void)
 {
-	printk(KERN_INFO "Initializing the char device driver \n");	
+	printk(KERN_INFO "Initializing the char device driver \n\n");	
 
 	//register char device driver
 	majorNumber = register_chrdev(0, DEVICENAME, &fOps);
@@ -92,18 +93,20 @@ ssize_t devRead(struct file *filePtr, char *buffer, size_t length, loff_t *offse
 {
 	printk(KERN_INFO "Device is reading \n");
 
-	if(position == 0)
+	if(position == 0) {
 		printk(KERN_INFO "Nothing to read \n");
+	}
 
-	else
-	{
+	else {
 		//print message and empty whole array afterwards
-        printk(KERN_INFO "MessageContents: %s", message);
-        for(i=0; i<sizeof(message); i++)
-        {
+        printk(KERN_INFO "Contents: %s", message);
+        for(i=0; i<sizeof(message); i++) 
+		{
             message[i] = ' ';
         }
         position = 0;
+
+		printk(KERN_INFO "Reading finished \n");
 	}
 
 	return 0;
@@ -112,50 +115,40 @@ ssize_t devRead(struct file *filePtr, char *buffer, size_t length, loff_t *offse
 ssize_t devWrite(struct file *filePtr, const char *buffer, size_t length, loff_t *offset)
 {
 	printk(KERN_INFO "Device is writing \n");
-
-	//copy_from_user(message, buffer, length-1);
 	printk(KERN_INFO "buffer: %s", buffer);
 
-	if(position >= MAXSIZE)
-	{
+	if(position >= MAXSIZE) {
 		printk(KERN_INFO "Buffer is full \n");
-		//return 0; //causes like an infinite loop
 	}
 
-	else
+	else 
 	{
+		//copy buffer into message
 		for(i=0; i<length-1; i++)
 		{			
 			message[position] = buffer[i];
 			position++;
 			
+			//when a string is too long
 			if(position >= MAXSIZE)
 				break;
 		}
-	}
 
-	printk(KERN_INFO "message: %s", message);
+		printk(KERN_INFO "message: %s \n", message);
+		printk(KERN_INFO "Writing finished \n");
 
-/*
-	if(position == 10)
-	{
-		for(i=0; i<10; i++)
-			printk(KERN_INFO "%c\n", message[i]);
+		if(position >= MAXSIZE)
+			printk(KERN_INFO "Buffer is full \n");
 	}
-*/
 
 	return length;
 }
 
 int devRelease(struct inode *inodePtr, struct file *filePtr)
 {
-	printk(KERN_INFO "Device has been closed \n");
+	printk(KERN_INFO "Device has been closed \n\n");
 
 	return 0;
 }
-
-
-
-
 
 
