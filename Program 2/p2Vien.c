@@ -18,7 +18,8 @@ int devRelease(struct inode *inodePtr, struct file *filePtr);
 
 //Globals
 int majorNumber, i;
-char message[MAXSIZE] = {0};
+char message[MAXSIZE];
+memset(message, 0, MAXSIZE-1);
 int position = 0;
 int numBytesAllowed;
 struct class* charDeviceClass = NULL;
@@ -100,13 +101,9 @@ ssize_t devRead(struct file *filePtr, char *buffer, size_t length, loff_t *offse
 	else {
 		//print message and empty whole array afterwards
         printk(KERN_INFO "Contents: %s", message);
-        for(i=0; i<sizeof(message); i++) 
-		{
-            message[i] = ' ';
-        }
+        memset(message, 0, MAXSIZE-1);
         position = 0;
-
-		printk(KERN_INFO "Reading finished \n");
+	printk(KERN_INFO "Reading finished \n");
 	}
 
 	return 0;
