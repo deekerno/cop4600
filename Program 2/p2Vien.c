@@ -18,10 +18,8 @@ int devRelease(struct inode *inodePtr, struct file *filePtr);
 
 //Globals
 int majorNumber, i;
-char message[MAXSIZE];
-memset(message, 0, MAXSIZE-1);
+char message[MAXSIZE] = {0};
 int position = 0;
-int numBytesAllowed;
 struct class* charDeviceClass = NULL;
 struct device* charDeviceDevice = NULL;
 
@@ -94,16 +92,19 @@ ssize_t devRead(struct file *filePtr, char *buffer, size_t length, loff_t *offse
 {
 	printk(KERN_INFO "Device is reading \n");
 
-	if(position == 0) {
+	if(position==0 && strlen(message)==0) {
 		printk(KERN_INFO "Nothing to read \n");
 	}
 
-	else {
+	else { 
+		//printk(KERN_INFO "pos: %d\n", position);
+		
 		//print message and empty whole array afterwards
-        printk(KERN_INFO "Contents: %s", message);
-        memset(message, 0, MAXSIZE-1);
+        printk(KERN_INFO "Contents: %s \n", message);
+		memset(message, 0, MAXSIZE);
         position = 0;
-	printk(KERN_INFO "Reading finished \n");
+
+		printk(KERN_INFO "Reading finished \n");
 	}
 
 	return 0;
@@ -112,7 +113,7 @@ ssize_t devRead(struct file *filePtr, char *buffer, size_t length, loff_t *offse
 ssize_t devWrite(struct file *filePtr, const char *buffer, size_t length, loff_t *offset)
 {
 	printk(KERN_INFO "Device is writing \n");
-	printk(KERN_INFO "buffer: %s", buffer);
+	//printk(KERN_INFO "buffer: %s", buffer);
 
 	if(position >= MAXSIZE) {
 		printk(KERN_INFO "Buffer is full \n");
@@ -131,7 +132,7 @@ ssize_t devWrite(struct file *filePtr, const char *buffer, size_t length, loff_t
 				break;
 		}
 
-		printk(KERN_INFO "message: %s \n", message);
+		//printk(KERN_INFO "message: %s", message);
 		printk(KERN_INFO "Writing finished \n");
 
 		if(position >= MAXSIZE)
