@@ -100,7 +100,7 @@ ssize_t devRead(struct file *filePtr, char *buffer, size_t length, loff_t *offse
 {
 	//turn on lock	
 	if(!mutex_trylock(&mutexLock)) {
-		printk(KERN_INFO "Sorry, input device in use! \n");
+		printk(KERN_INFO "Sorry, output device in use! \n");
 		return -EBUSY;
 	}		
 
