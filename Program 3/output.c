@@ -32,6 +32,7 @@ struct file_operations fOps =
 	.owner = THIS_MODULE,
 	.open = devOpen,        //open device
 	.read = devRead,		//read from device
+	.write = devWrite,      //output device can't write
 	.release = devRelease,  //close device
 };
 
@@ -74,6 +75,7 @@ int init_module(void)
 void cleanup_module(void)
 {
 	mutex_destroy(&mutexLock);
+
 	device_destroy(outDeviceClass, MKDEV(majorNumber,0));
 	class_unregister(outDeviceClass);	
 	class_destroy(outDeviceClass);
@@ -109,8 +111,6 @@ ssize_t devRead(struct file *filePtr, char *buffer, size_t length, loff_t *offse
 	}
 
 	else { 
-		//printk(KERN_INFO "pos: %d\n", position);
-		
 		//print message and empty whole array afterwards
         printk(KERN_INFO "StoredContents: %s \n", message);
 		memset(message, 0, MAXSIZE);
@@ -119,10 +119,20 @@ ssize_t devRead(struct file *filePtr, char *buffer, size_t length, loff_t *offse
 		printk(KERN_INFO "Reading finished \n");
 	}
 
+	printk(KERN_INFO "CurrentBuffSize: %d \n", position);
+
 	//release lock
 	mutex_unlock(&mutexLock);
 
 	return 0;
+}
+
+
+ssize_t devWrite(struct file *filePtr, const char *buffer, size_t length, loff_t *offset)
+{
+	printk(KERN_INFO "Sorry, output device can't write! \n");	
+
+	return length;
 }
 
 
@@ -132,6 +142,4 @@ int devRelease(struct inode *inodePtr, struct file *filePtr)
 
 	return 0;
 }
-
-
 
