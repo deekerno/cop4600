@@ -6,7 +6,6 @@
 extern char message[MAXSIZE];
 extern int position;
 
-
 #endif
 
 
